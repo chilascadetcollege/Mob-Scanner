@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mob Scanner</title>
+    <meta name="description" content="A professional document scanner progressive web app.">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <!-- Cropper.js for cropping -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen active">
+        <div class="logo-container">
+            <img src="icons/icon-512.png" alt="Mob Scanner Logo" class="splash-img">
+            <h1>Mob Scanner</h1>
+            <p>ہائی کوالٹی ڈاکومنٹ سکینر</p>
+        </div>
+        <div class="loader"></div>
+    </div>
+
+    <!-- Main Screens Container -->
+    <div id="appContainer" class="hidden">
+        
+        <!-- Screen 1: Home / Camera View -->
+        <div id="cameraScreen" class="screen active">
+            <div class="top-bar glass">
+                <h2>Mob Scanner</h2>
+                <button id="btnSwitchCamera" class="icon-btn"><i class="fa-solid fa-camera-rotate"></i></button>
+            </div>
+            
+            <div class="camera-container">
+                <video id="cameraFeed" autoplay playsinline></video>
+                <!-- Framing guide lines -->
+                <div class="scanner-frame">
+                    <div class="corner top-left"></div>
+                    <div class="corner top-right"></div>
+                    <div class="corner bottom-left"></div>
+                    <div class="corner bottom-right"></div>
+                </div>
+            </div>
+
+            <div class="bottom-bar glass">
+                <div class="controls-row">
+                    <div class="gallery-upload">
+                        <label for="imageUpload" class="icon-btn">
+                            <i class="fa-solid fa-image"></i>
+                        </label>
+                        <input type="file" id="imageUpload" accept="image/*" hidden>
+                    </div>
+                    <button id="btnCapture" class="capture-btn">
+                        <div class="capture-btn-inner"></div>
+                    </button>
+                    <button id="btnFlash" class="icon-btn" disabled><i class="fa-solid fa-bolt"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 2: Crop View -->
+        <div id="cropScreen" class="screen hidden">
+            <div class="top-bar glass">
+                <button id="btnCancelCrop" class="icon-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2>تصویر کاٹیں (Crop)</h2>
+                <button id="btnDoneCrop" class="icon-btn"><i class="fa-solid fa-check"></i></button>
+            </div>
+            <div class="canvas-container">
+                <img id="imageToCrop" src="" alt="Crop image">
+            </div>
+            <div class="bottom-bar glass flex-center">
+                <button id="btnRotateView" class="icon-text-btn">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>گھمائیں</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 3: Edit & Filters View -->
+        <div id="editScreen" class="screen hidden">
+            <div class="top-bar glass">
+                <button id="btnBackToCrop" class="icon-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2>فلٹرز اور ایڈٹ</h2>
+                <button id="btnProceedSave" class="icon-btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <div class="canvas-container edit-area">
+                <canvas id="filterCanvas"></canvas>
+            </div>
+            <!-- Filters List -->
+            <div class="filters-bar glass">
+                <div class="filter-option active" data-filter="original">
+                    <div class="filter-thumb bg-gray">O</div>
+                    <span>اصلی</span>
+                </div>
+                <div class="filter-option" data-filter="magic">
+                    <div class="filter-thumb bg-magic">M</div>
+                    <span>میجک کلر</span>
+                </div>
+                <div class="filter-option" data-filter="grayscale">
+                    <div class="filter-thumb bg-dark">G</div>
+                    <span>بلیک & وائٹ</span>
+                </div>
+                <div class="filter-option" data-filter="high_contrast">
+                    <div class="filter-thumb bg-contrast">C</div>
+                    <span>ہائی کنٹراسٹ</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 4: Save and Share View -->
+        <div id="saveScreen" class="screen hidden">
+            <div class="top-bar glass">
+                <button id="btnBackToEdit" class="icon-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2>محفوظ کریں</h2>
+            </div>
+            <div class="canvas-container preview-area">
+                <img id="finalImage" src="" alt="Final Document">
+            </div>
+            <div class="action-buttons-container">
+                <input type="text" id="docName" value="MobScanner_Doc_1" class="doc-name-input glass">
+                
+                <div class="btn-grid">
+                    <button class="action-btn" id="btnSaveJPG">
+                        <i class="fa-solid fa-image"></i>
+                        <span>JPG میں سیو کریں</span>
+                    </button>
+                    <button class="action-btn" id="btnSavePDF">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>PDF میں سیو کریں</span>
+                    </button>
+                    <button class="action-btn" id="btnShare">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        <span>شیئر کریں (Share)</span>
+                    </button>
+                    <button class="action-btn pro-btn" id="btnUpgradePrompt">
+                        <i class="fa-solid fa-crown text-gold"></i>
+                        <span>Upgrade to Pro</span>
+                    </button>
+                </div>
+                <button class="action-btn new-scan-btn mt-3" id="btnNewScan">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>نئی سکیننگ شروع کریں</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 5: Pro Upgrade View -->
+        <div id="proScreen" class="screen hidden" style="z-index: 50; background: var(--bg-color);">
+            <div class="top-bar glass">
+                <button id="btnBackFromPro" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+                <h2>Mob Scanner Pro</h2>
+            </div>
+            <div class="pro-content">
+                <img src="icons/icon-512.png" alt="Pro Icon" class="pro-img">
+                <h3 class="pro-title">گو پرو (Go Pro)</h3>
+                <p class="pro-desc">پریمیم فیچرز تک رسائی حاصل کریں اور اپنے سکیننگ تجربے کو بہتر بنائیں۔</p>
+                
+                <ul class="pro-features-list">
+                    <li><i class="fa-solid fa-check text-green"></i> واٹر مارک کے بغیر ڈاکومنٹس محفوظ کریں</li>
+                    <li><i class="fa-solid fa-check text-green"></i> ہائی ریزولیوشن (HD) پی ڈی ایف</li>
+                    <li><i class="fa-solid fa-check text-green"></i> کوئی اشتہارات نہیں (Ad-free)</li>
+                </ul>
+
+                <button id="btnBuyPro" class="pro-buy-btn">
+                    خریدیں - Rs. 500 / Lifetime
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Cropper.js Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <!-- Main Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
